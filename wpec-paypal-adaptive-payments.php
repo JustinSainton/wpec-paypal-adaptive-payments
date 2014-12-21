@@ -8,7 +8,7 @@
  * Author URI: https://wpecommerce.org
 **/
 
-add_filter( 'wpsc_pre_init', 'wpsc_pap_register_dir' );
+add_filter( 'wpsc_init', 'wpsc_pap_register_dir' );
 
 function wpsc_pap_register_dir() {
 

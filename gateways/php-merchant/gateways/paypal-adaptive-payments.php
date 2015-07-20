@@ -1,10 +1,10 @@
 <?php
 
 class PHP_Merchant_Paypal_Adaptive_Payments {
-  
+
 	const SANDBOX_URL = 'https://svcs.sandbox.paypal.com/AdaptivePayments/';
 	const LIVE_URL = 'https://svcs.paypal.com/AdaptivePayments/';
-  
+
   private $options = array();
   private static $supported_currencies = array(
     'AUD',
@@ -35,14 +35,14 @@ class PHP_Merchant_Paypal_Adaptive_Payments {
   public function get_supported_currencies() {
     return self::$supported_currencies;
   }
-  
+
   public function get_envelope() {
     return array(
       'errorLanguage' => 'en_US',
       'detailLevel' => 'returnAll'
     );
   }
-  
+
   public function get_headers() {
     return array(
       'X-PAYPAL-SECURITY-USERID: ' . $this->options['api_username'],
@@ -63,7 +63,7 @@ class PHP_Merchant_Paypal_Adaptive_Payments {
     $response = $this->_paypal_send( $create_packet, 'PreapprovalDetails' );
     return $response;
   }
-  
+
 	protected function get_notify_url( $payment_id ) {
 		$location = add_query_arg( array(
 			'payment_gateway'          => 'paypal-adaptive-payments',
@@ -73,13 +73,13 @@ class PHP_Merchant_Paypal_Adaptive_Payments {
 
 		return apply_filters( 'wpsc_paypal_adaptive_payments_notify_url', $location );
 	}
-  
+
   public function pay_preapprovals( $payment_id, $preapproval_key, $sender_email, $amount, $receivers=null ) {
     $pay_response = false;
     $receivers = isset( $receivers ) ? $receivers : apply_filters( 'wpsc_pap_adaptive_receivers', $this->options['receivers'], $payment_id );
-    
+
     $receivers = $this->divide_total( $receivers, $amount );
-    
+
     $create_packet = array(
       'actionType'         => 'CREATE',
       'preapprovalKey'     => $preapproval_key,
@@ -110,7 +110,7 @@ class PHP_Merchant_Paypal_Adaptive_Payments {
       return $pay_response;
     }
   }
-  
+
   public function cancel_preapprovals( $preapproval_key ) {
     $create_packet = array(
       'requestEnvelope' => $this->get_envelope(),
@@ -119,9 +119,9 @@ class PHP_Merchant_Paypal_Adaptive_Payments {
     $response = $this->_paypal_send( $create_packet, 'CancelPreapproval' );
     return $response;
   }
-  
+
   public function preapproval( $payment_id, $amount, $reference_token, $starting_date=null, $ending_date=null ) {
-    
+
     $params = array(
       'preapproval_token' => $reference_token,
     );
@@ -142,7 +142,7 @@ class PHP_Merchant_Paypal_Adaptive_Payments {
     $response = $this->_paypal_send( $create_packet, 'Preapproval' );
     return $response;
   }
-  
+
   public function pay( $payment_id, $receivers, $reference_token ) {
     $params = array(
       'payment_token' => $reference_token,
@@ -175,7 +175,7 @@ class PHP_Merchant_Paypal_Adaptive_Payments {
       return $pay_response;
     }
   }
-  
+
   public function execute_payment( $pay_key ) {
     $packet = array(
       'requestEnvelope' => $this->get_envelope(),
@@ -183,18 +183,18 @@ class PHP_Merchant_Paypal_Adaptive_Payments {
     );
     return $this->_paypal_send( $packet, 'ExecutePayment' );
   }
-  
+
   public function set_payment_options( $pay_key ) {
     $packet = array(
       'requestEnvelope' => $this->get_envelope(),
       'payKey' => $pay_key,
       'senderOptions' => array(
-        'referrerCode' => 'ArmorlightComputers_SP'
+        'referrerCode' => 'WPeC_Cart_AP'
       )
     );
     return $this->_paypal_send( $packet, 'SetPaymentOptions' );
   }
-  
+
   public function get_payment_details( $pay_key ) {
     $packet = array(
       'requestEnvelope' => $this->get_envelope(),
@@ -202,16 +202,16 @@ class PHP_Merchant_Paypal_Adaptive_Payments {
     );
     return $this->_paypal_send( $packet, 'PaymentDetails' );
   }
-  
+
   public function get_payment_options( $pay_key ) {
     $packet = array(
       'requestEnvelope' => $this->get_envelope(),
       'payKey' => $pay_key
     );
-    
+
     return $this->_paypal_send( $packet, 'GetPaymentOptions' );
   }
-  
+
   public function _send_url() {
     $url = self::LIVE_URL;
     if ( $this->options['test'] ) {
@@ -219,13 +219,13 @@ class PHP_Merchant_Paypal_Adaptive_Payments {
     }
     return $url;
   }
-  
+
   public function _paypal_send( $data, $call ) {
     //open connection
     $ch = curl_init();
     curl_setopt( $ch, CURLOPT_URL, $this->_send_url() . $call );
     curl_setopt( $ch, CURLOPT_RETURNTRANSFER, TRUE );
-    curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, FALSE ); 
+    curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, FALSE );
     curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, FALSE );
     curl_setopt( $ch, CURLOPT_POST, TRUE );
     curl_setopt( $ch, CURLOPT_POSTFIELDS, json_encode( $data ) );
@@ -233,9 +233,9 @@ class PHP_Merchant_Paypal_Adaptive_Payments {
     $response = json_decode( curl_exec( $ch ), true );
     curl_close( $ch );
     return $response;
-    
+
   }
-  
+
   public function divide_total( $adaptive_receivers, $total ) {
     $receivers = array();
     if ( ! is_array( $adaptive_receivers ) ) {
@@ -250,7 +250,7 @@ class PHP_Merchant_Paypal_Adaptive_Payments {
         $receiver = explode( '|', $receiver );
       }
       $amount = round( $total / 100 * trim( $receiver[1] ), 2 );
-      
+
       if ( isset( $this->options['payment_type'] ) && $this->options['payment_type'] == 'parallel') {
         $receivers[ $key ] = array(
           'email' => trim( $receiver[0] ),
@@ -273,7 +273,7 @@ class PHP_Merchant_Paypal_Adaptive_Payments {
           );
         }
       }
-      
+
       $new_total += $amount;
       if ( $cycle == $total_receivers ) {
         if ( $new_total > $total ) {
@@ -284,10 +284,10 @@ class PHP_Merchant_Paypal_Adaptive_Payments {
         }
       }
     }
-    
+
     return $receivers;
   }
-  
+
 	public function authorize() {
 
 	}
@@ -308,5 +308,5 @@ class PHP_Merchant_Paypal_Adaptive_Payments {
     $this->options = array_merge( $this->options, $options );
     return $this;
   }
-  
+
 }

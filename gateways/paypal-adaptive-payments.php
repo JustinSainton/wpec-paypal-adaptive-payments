@@ -100,7 +100,7 @@ class WPSC_Payment_Gateway_Paypal_Adaptive_Payments extends WPSC_Payment_Gateway
             wpsc_update_purchase_log_status( $_GET['payment_id'], WPSC_Purchase_Log::ACCEPTED_PAYMENT );
             $this->purchase_log->set( 'processed', WPSC_Purchase_Log::ACCEPTED_PAYMENT );
             $this->purchase_log->save();
-            transaction_results( $sessionid, false );
+            transaction_results( $this->purchase_log->get( 'sessionid' ), false );
           }
           break;
         case 'Adaptive Payment PREAPPROVAL':

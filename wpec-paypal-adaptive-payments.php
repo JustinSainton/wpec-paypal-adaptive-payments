@@ -103,15 +103,20 @@ function pap_item_details_section( $item_id ) {
 add_action( 'init', 'wpsc_pap_process_preapproval' );
 
 function wpsc_pap_process_preapproval() {
+	
 	if ( isset( $_GET['process_preapproval'] ) ) {
 		add_action( 'admin_notices', 'wpsc_pap_process_preapproval_message' );
 	}
 	if ( isset( $_GET['cancel_preapproval'] ) ) {
 		add_action( 'admin_notices', 'wpsc_pap_cancel_preapproval_message' );
 	}
-	require_once( 'gateways/paypal-adaptive-payments.php' );
-	$paypal_adaptive = new WPSC_Payment_Gateway_Paypal_Adaptive_Payments();
-	$paypal_adaptive->wpsc_pap_process_preapproval();
+	
+	if ( class_exists( 'WPSC_Payment_Gateway' ) ) {
+		require_once( 'gateways/paypal-adaptive-payments.php' );
+		
+		$paypal_adaptive = new WPSC_Payment_Gateway_Paypal_Adaptive_Payments();
+		$paypal_adaptive->wpsc_pap_process_preapproval();		
+	}
 }
 
 function wpsc_pap_process_preapproval_message() {
